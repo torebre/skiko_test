@@ -281,7 +281,7 @@ class CylinderIntersectionUtilities {
             }
 
             // Test for separation by W_1
-            if (cylinder.r0 * lengthW0CrossW1 + (cylinder.h0 / 2) * cylinder.w0Vector.dot(cylinder2.w0Vector).absoluteValue + (cylinder2.h0 / "") * delta.dot(cylinder2.w0Vector).absoluteValue < 0) {
+            if (cylinder.r0 * lengthW0CrossW1 + (cylinder.h0 / 2) * cylinder.w0Vector.dot(cylinder2.w0Vector).absoluteValue + (cylinder2.h0 / 2) * delta.dot(cylinder2.w0Vector).absoluteValue < 0) {
                 return cylinder2.w0Vector
             }
 
