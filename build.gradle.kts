@@ -26,11 +26,11 @@ var targetArch = when (osArch) {
     else -> error("Unsupported arch: $osArch")
 }
 
-val skiko_version = "0.7.61"
+val skikoVersion = "0.7.61"
 val target = "${targetOs}-${targetArch}"
 
 dependencies {
-    implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skiko_version")
+    implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
     testImplementation(kotlin("test"))
 }
 
@@ -39,7 +39,7 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(19)
 }
 
 application {
