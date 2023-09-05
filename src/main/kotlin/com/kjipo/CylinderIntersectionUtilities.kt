@@ -25,8 +25,12 @@ class CylinderIntersectionUtilities {
 //        pVector: Vector3, w0Vector: Vector3,
 //        lVector: Vector3, w1Vector: Vector3
     ): Pair<Double, Double> {
-        val r0Term = r0 * pVector.crossProduct(w0Vector).dot(lVector.crossProduct(w0Vector)).div(pVector.crossProduct(w0Vector).length())
-        val r1Term = r1 * pVector.crossProduct(w1Vector).dot(lVector.crossProduct(w1Vector)).div(pVector.crossProduct(w1Vector).length())
+        val r0Term = r0 * pVector.crossProduct(w0Vector)
+            .dot(lVector.crossProduct(w0Vector))
+            .div(pVector.crossProduct(w0Vector).length())
+        val r1Term = r1 * pVector.crossProduct(w1Vector)
+            .dot(lVector.crossProduct(w1Vector))
+            .div(pVector.crossProduct(w1Vector).length())
 
         val h0Term = (h0 / 2) * lVector.dot(w0Vector).absoluteValue
         val h1Term = (h1 / 2) * lVector.dot(w1Vector).absoluteValue
@@ -273,7 +277,6 @@ class CylinderIntersectionUtilities {
         val w0CrosswW1 = w0Vector.crossProduct(w1Vector)
         val lengthW0CrossW1 = w0CrosswW1.length()
 
-
         if (lengthW0CrossW1 > 0) {
             // Test for separation by W_0
             if (cylinder2.r0 * lengthW0CrossW1 + cylinder.h0 / 2 + (cylinder2.h0 / 2) * cylinder.w0Vector.dot(cylinder2.w0Vector).absoluteValue - w0Vector.dot(delta).absoluteValue < 0) {
@@ -470,6 +473,14 @@ class CylinderIntersectionUtilities {
 
         val imax = 10
         val maxTries = 1000
+
+
+        fun searchForSeparatingAxis(cylinder1: Cylinder, cylinder2: Cylinder): Vector3? {
+            val cylinderIntersectionComputation = CylinderIntersectionUtilities()
+
+            return cylinderIntersectionComputation.separatedCylinders(cylinder1, cylinder2)
+
+        }
 
     }
 
