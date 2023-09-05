@@ -26,7 +26,7 @@ var targetArch = when (osArch) {
     else -> error("Unsupported arch: $osArch")
 }
 
-val skikoVersion = "0.7.61"
+val skikoVersion = "0.7.79"
 val target = "${targetOs}-${targetArch}"
 
 dependencies {
