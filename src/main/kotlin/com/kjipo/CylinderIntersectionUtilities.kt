@@ -288,12 +288,8 @@ class CylinderIntersectionUtilities {
                 return cylinder2.w0Vector
             }
 
-
-            // TODO
-
-            // TODO What is rSum? It should be multipled with the length
             // Test for separation by W_0 cross W_1
-            if (lengthW0CrossW1 - w0CrosswW1.dot(delta).absoluteValue < 0) {
+            if ((cylinder.r0 + cylinder2.r0) * lengthW0CrossW1 - w0CrosswW1.dot(delta).absoluteValue < 0) {
                 return w0CrosswW1.normalize()
             }
 
@@ -303,7 +299,6 @@ class CylinderIntersectionUtilities {
                     + (h0 / 2) * delta.dot(w0Vector).absoluteValue
                     + (h1 / 2) * delta.dot(w1Vector).absoluteValue
                     - delta.dot(delta) < 0) {
-                // TODO Check that this is the correct vector to return
                 return delta.normalize()
             }
 
