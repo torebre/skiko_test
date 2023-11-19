@@ -189,42 +189,6 @@ class CylinderIntersectionUtilities {
     }
 
 
-    fun bisect(
-            valueFunction: (Double) -> Double,
-//        t0: Double,
-            bracketStart: Double,
-            pointInBracket: Double,
-            bracketEnd: Double
-//               t1: Double,
-//    dgdt0n: Double, tMin: Double, dgdtTmin: Double
-    ): Double {
-//        var a = t0
-//        var b = t0 / 2
-//        var c = 0.0
-
-        var a = bracketStart
-        var b = pointInBracket
-        var c = bracketEnd
-
-//        var cDev = dgdt0n
-
-        for (i in 0 until maxTries) {
-            val alpha = (valueFunction(b) - valueFunction(a)) / (b - a)
-            val beta = (valueFunction(c) - valueFunction(a) - alpha * (c - a)) / ((c - a) * (c - b))
-            val x = (a + b) / 2 - alpha / (2 * beta)
-            a = b
-            b = c
-            c = x
-
-            if (maxOf(a, b, c) - minOf(a, b, c) < 1e-6) {
-                break
-            }
-        }
-
-        // TODO Check if converged
-
-        return c
-    }
 
     /**
      * Evaluation of g(t) for all t
@@ -477,6 +441,48 @@ class CylinderIntersectionUtilities {
 
         }
 
+        fun bisect(
+            valueFunction: (Double) -> Double,
+//        t0: Double,
+            bracketStart: Double,
+            pointInBracket: Double,
+            bracketEnd: Double
+//               t1: Double,
+//    dgdt0n: Double, tMin: Double, dgdtTmin: Double
+        ): Double {
+//        var a = t0
+//        var b = t0 / 2
+//        var c = 0.0
+
+            var a = bracketStart
+            var b = pointInBracket
+            var c = bracketEnd
+
+//        var cDev = dgdt0n
+
+            var tryCounter = 0
+            while (tryCounter < maxTries) {
+                val alpha = (valueFunction(b) - valueFunction(a)) / (b - a)
+                val beta = (valueFunction(c) - valueFunction(a) - alpha * (c - a)) / ((c - a) * (c - b))
+                val x = (a + b) / 2 - alpha / (2 * beta)
+                a = b
+                b = c
+                c = x
+
+                if (maxOf(a, b, c) - minOf(a, b, c) < 1e-6) {
+                    break
+                }
+
+                ++tryCounter
+            }
+
+            // TODO Check if converged
+            if(tryCounter == maxTries) {
+                return Double.NaN
+            }
+
+            return c
+        }
     }
 
 
