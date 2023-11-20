@@ -13,6 +13,7 @@ class CylinderIntersectionUtilities {
     var w1Vector = Vector3(0.0, 0.0, 0.0)
     var h0 = 0.0
     var h1 = 0.0
+    var w0CrossW1 = Vector3(0.0, 0.0, 0.0)
 
     val numLines = 20
 
@@ -238,12 +239,12 @@ class CylinderIntersectionUtilities {
         }
 
         val delta = cylinder2.c0Vector - cylinder.c0Vector
-        val w0CrosswW1 = w0Vector.crossProduct(w1Vector)
+        val w0CrosswW1 = cylinder.w0Vector.crossProduct(cylinder2.w0Vector)
         val lengthW0CrossW1 = w0CrosswW1.length()
 
         if (lengthW0CrossW1 > 0) {
             // Test for separation by W_0
-            if (cylinder2.r0 * lengthW0CrossW1 + cylinder.h0 / 2 + (cylinder2.h0 / 2) * cylinder.w0Vector.dot(cylinder2.w0Vector).absoluteValue - w0Vector.dot(delta).absoluteValue < 0) {
+            if (cylinder2.r0 * lengthW0CrossW1 + cylinder.h0 / 2 + (cylinder2.h0 / 2) * cylinder.w0Vector.dot(cylinder2.w0Vector).absoluteValue - cylinder.w0Vector.dot(delta).absoluteValue < 0) {
                 return cylinder.w0Vector
             }
 
@@ -258,20 +259,20 @@ class CylinderIntersectionUtilities {
             }
 
             // Test for separation by delta
-            if (cylinder.r0 * delta.crossProduct(w0Vector).length()
-                    + cylinder2.r0 * delta.crossProduct(w1Vector).length()
-                    + (h0 / 2) * delta.dot(w0Vector).absoluteValue
-                    + (h1 / 2) * delta.dot(w1Vector).absoluteValue
+            if (cylinder.r0 * delta.crossProduct(cylinder.w0Vector).length()
+                    + cylinder2.r0 * delta.crossProduct(cylinder2.w0Vector).length()
+                    + (h0 / 2) * delta.dot(cylinder.w0Vector).absoluteValue
+                    + (h1 / 2) * delta.dot(cylinder.w0Vector).absoluteValue
                     - delta.dot(delta) < 0) {
                 return delta.normalize()
             }
 
             return separatedByOtherDirections(
                     delta,
-                    w0Vector,
+                    cylinder.w0Vector,
                     cylinder.r0,
                     cylinder.h0,
-                    w1Vector,
+                    cylinder2.w0Vector,
                     cylinder2.r0,
                     cylinder2.h0
             )
@@ -295,30 +296,35 @@ class CylinderIntersectionUtilities {
 
 
     fun separatedByOtherDirections(
-            delta: Vector3,
-            w0Vector: Vector3,
-            r0: Double,
-            h0: Double,
-            w1Vector: Vector3,
-            r1: Double,
-            h1: Double,
+        delta: Vector3,
+        cylinder1AxisVector: Vector3,
+        cylinder1Radius: Double,
+        cylinder1Height: Double,
+        cylinder2AxisVector: Vector3,
+        cylinder2Radius: Double,
+        cylinder2Height: Double,
     ): Vector3? {
+        this.r0 = cylinder1Radius
+        this.h0 = cylinder1Height
+        this.r1 = cylinder2Radius
+        this.h1 = cylinder2Height
+
         var lengthDelta = delta.length()
 //        , vVector, nVector
         var uVector = delta / lengthDelta
         var vVector = uVector
         var nVector = vVector
 
-        var w0Vector = Vector3(uVector.dot(w0Vector), vVector.dot(w0Vector), nVector.dot(w0Vector))
-        var w1Vector = Vector3(uVector.dot(w1Vector), vVector.dot(w1Vector), nVector.dot(w1Vector))
-        var w0CrossW1 = w0Vector.crossProduct(w1Vector)
+        this.w0Vector = Vector3(uVector.dot(cylinder1AxisVector), vVector.dot(cylinder1AxisVector), nVector.dot(cylinder1AxisVector))
+        this.w1Vector = Vector3(uVector.dot(cylinder2AxisVector), vVector.dot(cylinder2AxisVector), nVector.dot(cylinder2AxisVector))
+        this.w0CrossW1 = cylinder1AxisVector.crossProduct(cylinder2AxisVector)
 
-        if (w0Vector.z > 0) {
-            w0Vector = w0Vector * -1.0
+        if (cylinder1AxisVector.z > 0) {
+            this.w0Vector *= -1.0
         }
 
-        if (w1Vector.z < 0) {
-            w1Vector = w1Vector * -1.0
+        if (cylinder2AxisVector.z < 0) {
+            this.w1Vector *= -1.0
         }
 
 //        if(w0CrossW1.z < 0) {
@@ -327,20 +333,20 @@ class CylinderIntersectionUtilities {
 
 
         // Compute the common origin for the line discontinuities
-        var pVector = w0CrossW1 / w0CrossW1.z
+        pVector = this.w0CrossW1 / this.w0CrossW1.z
 
         // Compute the point discontinuities
-        val q0Vector = w0Vector / w0Vector.z
-        val q1Vector = w1Vector / w1Vector.z
+        val q0Vector = this.w0Vector / this.w0Vector.z
+        val q1Vector = this.w1Vector / this.w1Vector.z
 
 
         val lineMinimums = mutableListOf<Double>()
         for (i in 0 until numLines) {
             // Compute a line direction
-            var angle = PI * i / numLines
+            val angle = PI * i / numLines
 
             // Compute the minimum of g(t) on the line P + tL(theta)
-            var lVector = Vector3(cos(angle), sin(angle), 0.0)
+            lVector = Vector3(cos(angle), sin(angle), 0.0)
 
             // TODO
 
@@ -441,6 +447,9 @@ class CylinderIntersectionUtilities {
 
         }
 
+        /**
+         * TODO Will this bisect method always work?
+         */
         fun bisect(
             valueFunction: (Double) -> Double,
 //        t0: Double,
@@ -476,7 +485,6 @@ class CylinderIntersectionUtilities {
                 ++tryCounter
             }
 
-            // TODO Check if converged
             if(tryCounter == maxTries) {
                 return Double.NaN
             }

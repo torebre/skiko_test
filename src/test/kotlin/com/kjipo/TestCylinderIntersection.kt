@@ -18,6 +18,7 @@ class TestCylinderIntersection {
 
         val separatingAxis = CylinderIntersectionUtilities.searchForSeparatingAxis(cylinder1, cylinder2)
 
+        println("Separating axis: $separatingAxis")
     }
 
 

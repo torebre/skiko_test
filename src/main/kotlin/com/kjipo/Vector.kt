@@ -61,4 +61,9 @@ class Vector3(val x: Double, val y: Double, val z: Double) {
         return z == other.z
     }
 
+    override fun toString(): String {
+        return "Vector3(x=$x, y=$y, z=$z)"
+    }
+
+
 }
