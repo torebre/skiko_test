@@ -15,6 +15,9 @@ class CylinderIntersectionUtilities {
     var h1 = 0.0
     var w0CrossW1 = Vector3(0.0, 0.0, 0.0)
 
+    var q0Vector = Vector3(0.0, 0.0, 0.0)
+    var q1Vector = Vector3(0.0, 0.0, 0.0)
+
     val numLines = 20
 
 
@@ -97,7 +100,7 @@ class CylinderIntersectionUtilities {
     }
 
 
-    fun computeMinimumSingularZero(dgdt0n: Double, dgdt0p: Double): Double {
+    fun computeMinimumSingularZero(dgdt0n: Double, dgdt0p: Double): Double? {
         var t0 = -1.0
 
         val tMin = if (dgdt0n > 0) {
@@ -309,12 +312,14 @@ class CylinderIntersectionUtilities {
         this.r1 = cylinder2Radius
         this.h1 = cylinder2Height
 
-        var lengthDelta = delta.length()
+        val lengthDelta = delta.length()
 //        , vVector, nVector
-        var uVector = delta / lengthDelta
-        var vVector = uVector
-        var nVector = vVector
+        val uVector = delta / lengthDelta
+        val vVector = uVector
+        val nVector = vVector
 
+        // Convert to the coordinates system where N = Delta / |Delta| is the north
+        // pole of the hemisphere to be searched
         this.w0Vector = Vector3(uVector.dot(cylinder1AxisVector), vVector.dot(cylinder1AxisVector), nVector.dot(cylinder1AxisVector))
         this.w1Vector = Vector3(uVector.dot(cylinder2AxisVector), vVector.dot(cylinder2AxisVector), nVector.dot(cylinder2AxisVector))
         this.w0CrossW1 = cylinder1AxisVector.crossProduct(cylinder2AxisVector)
@@ -336,8 +341,8 @@ class CylinderIntersectionUtilities {
         pVector = this.w0CrossW1 / this.w0CrossW1.z
 
         // Compute the point discontinuities
-        val q0Vector = this.w0Vector / this.w0Vector.z
-        val q1Vector = this.w1Vector / this.w1Vector.z
+        q0Vector = this.w0Vector / this.w0Vector.z
+        q1Vector = this.w1Vector / this.w1Vector.z
 
 
         val lineMinimums = mutableListOf<Double>()
@@ -386,11 +391,37 @@ class CylinderIntersectionUtilities {
         val angle1 = PI * bracket[1] / numLines
         val angle2 = PI * bracket[2] / numLines
 
+        val result = findMinimum(angle0, angle1, angle2)
 
-        // TODO Need to find minimum
+        if(result == null) {
+            return null
+        }
+
+        if(result.gValue < 0) {
+
+            // TODO
+
+            // Transform to original coordinate system
+//            pVector + result.angle
+
+        }
+
 
         return null
 
+    }
+
+
+    fun findMinimum(bracketAngle0: Double, bracketAngle1: Double, bracketAngle2: Double): AngleGValue? {
+        val lineMinimumForAngle: (Double) -> Double = { angle: Double ->
+            // Compute the minimum of g(t) on the line P + tL(theta)
+            val lineVector = Vector3(cos(angle), sin(angle), 0.0)
+            computeLineMinimum(lineVector, q0Vector, q1Vector, pVector)
+        }
+
+        val inputForMinimum = bisect(lineMinimumForAngle, bracketAngle0, bracketAngle1, bracketAngle2) ?: return null
+
+        return AngleGValue(inputForMinimum, lineMinimumForAngle(inputForMinimum))
     }
 
 
@@ -398,7 +429,7 @@ class CylinderIntersectionUtilities {
             lVector: Vector3,
             q0Vector: Vector3, q1Vector: Vector3,
             pVector: Vector3
-    ): Double {
+    ): Double? {
         var lPerpVector = Vector3(lVector.x, lVector.y, 0.0)
 
         return if (lPerpVector.dot(q0Vector - pVector) != 0.0) {
@@ -458,7 +489,7 @@ class CylinderIntersectionUtilities {
             bracketEnd: Double
 //               t1: Double,
 //    dgdt0n: Double, tMin: Double, dgdtTmin: Double
-        ): Double {
+        ): Double? {
 //        var a = t0
 //        var b = t0 / 2
 //        var c = 0.0
@@ -486,7 +517,7 @@ class CylinderIntersectionUtilities {
             }
 
             if(tryCounter == maxTries) {
-                return Double.NaN
+                return null
             }
 
             return c
