@@ -363,15 +363,12 @@ class CylinderIntersectionUtilities {
 
 
         val lineMinimums = mutableListOf<Double>()
-        for (i in 0 until numLines) {
+        for (i in 0..<numLines) {
             // Compute a line direction
             val angle = PI * i / numLines
 
             // Compute the minimum of g(t) on the line P + tL(theta)
             lVector = Vector3(cos(angle), sin(angle), 0.0)
-
-            // TODO
-
             val tMin = computeLineMinimum(lVector, q0Vector, q1Vector, pVector)
             val gMin = gFunction(tMin)
             lineMinimums.add(gMin)
@@ -380,8 +377,6 @@ class CylinderIntersectionUtilities {
                 val polePoint = pVector + lVector * tMin
                 return (uVector * polePoint.x + vVector * polePoint.y + nVector).normalize()
             }
-
-
         }
 
         lineMinimums.add(lineMinimums[0])
@@ -415,17 +410,13 @@ class CylinderIntersectionUtilities {
         }
 
         if (result.gValue < 0) {
-
-            // TODO
-
             // Transform to original coordinate system
-//            pVector + result.angle
-
+            val polePoint = pVector + lVector.times(result.angle)
+            val separatingDirection = uVector.times(polePoint.x) + vVector.times(polePoint.y) + nVector
+            return separatingDirection.normalize()
         }
 
-
         return null
-
     }
 
 
@@ -436,9 +427,9 @@ class CylinderIntersectionUtilities {
             computeLineMinimum(lineVector, q0Vector, q1Vector, pVector)
         }
 
-        val inputForMinimum = bisect(lineMinimumForAngle, bracketAngle0, bracketAngle1, bracketAngle2) ?: return null
+        val inputForMinimum = bisect2(lineMinimumForAngle, bracketAngle0, bracketAngle1, bracketAngle2) ?: return null
 
-        return AngleGValue(inputForMinimum, lineMinimumForAngle(inputForMinimum))
+        return AngleGValue(inputForMinimum.first, inputForMinimum.second)
     }
 
 
@@ -447,7 +438,7 @@ class CylinderIntersectionUtilities {
         q0Vector: Vector3, q1Vector: Vector3,
         pVector: Vector3
     ): Double {
-        var lPerpVector = Vector3(lVector.x, lVector.y, 0.0)
+        val lPerpVector = Vector3(lVector.x, lVector.y, 0.0)
 
         return if (lPerpVector.dot(q0Vector - pVector) != 0.0) {
             // Q0 is not in the line P + t * L(angle)
@@ -456,11 +447,7 @@ class CylinderIntersectionUtilities {
                 val (dgdt0n, dgdt0p) = limitsDgdtZero()
 //                dgdt0n = result.first
 //                dgdt0p = result.second
-
                 computeMinimumSingularZero(dgdt0n, dgdt0p)
-
-                // TODO
-
             } else {
                 // Q1 is on the line P + tL(angle)
                 val (dgdt0n, dgdt0p) = limitsDgdtZero()
@@ -470,7 +457,6 @@ class CylinderIntersectionUtilities {
                     dgdt1n, dgdt1p
                 )
             }
-
         } else {
             // Q_0 is on the lint P + tL(angle)
             val (dgdt0n, dgdt0p) = limitsDgdtZero()
