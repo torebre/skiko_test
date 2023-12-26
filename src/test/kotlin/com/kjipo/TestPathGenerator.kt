@@ -19,4 +19,16 @@ class TestPathGenerator {
     }
 
 
+    @Test
+    fun testPathPoints() {
+        val pathGenerate = PathGenerator()
+
+        for (i in 0..<10) {
+            println(pathGenerate.getNextFrame())
+        }
+
+
+    }
+
+
 }

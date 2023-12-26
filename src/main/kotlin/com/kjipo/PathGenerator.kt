@@ -4,13 +4,25 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-class PathGenerator {
-    val xMin = 0.0
-    val xMax = 100.0
-    val yMin = 0.0
-    val yMax = 100.0
+class PathGenerator(
+    private val xMin: Double = 0.0,
+    private val xMax: Double = 100.0,
+    private val yMin: Double = 0.0,
+    private val yMax: Double = 100.0
+) : PathGeneratorInterface {
 
-    val cylinderHeight = 1000.0
+    private val cylinderHeight = 1000.0
+
+    private var currentTime = -1.0
+
+
+    private val cylindersToRender = mutableListOf<RenderCylinder>()
+
+
+    init {
+        cylindersToRender.add(RenderCylinder(generateCylinder()))
+        cylindersToRender.add(RenderCylinder(generateCylinder()))
+    }
 
 
     fun generateCylinder(): Cylinder {
@@ -23,18 +35,18 @@ class PathGenerator {
 
         return Cylinder(
             Vector3(xCoord, yCoord, timeCoord),
-            vectorFromPolarCoordinates(polar, alpha),
-            1.0, cylinderHeight
+            vectorFromPolarCoordinates(polar, alpha, cylinderHeight),
+            50.0, cylinderHeight
         )
     }
 
-    private fun vectorFromPolarCoordinates(polar: Double, alpha: Double): Vector3 {
-        return Vector3(
-            cylinderHeight * sin(polar) * cos(alpha),
-            cylinderHeight * sin(polar) * sin(alpha),
-            cylinderHeight * cos(polar)
-        ).normalize()
+    override fun getNextFrame(): List<Circle> {
+        ++currentTime
+        return cylindersToRender.map { cylinderToRender ->
+            cylinderToRender.getCircle(currentTime)
+        }
     }
+
 
     companion object {
 
@@ -48,6 +60,15 @@ class PathGenerator {
             )
         }
 
+        private fun vectorFromPolarCoordinates(polar: Double, alpha: Double, cylinderHeight: Double): Vector3 {
+            return Vector3(
+                cylinderHeight * sin(polar) * cos(alpha),
+                cylinderHeight * sin(polar) * sin(alpha),
+                cylinderHeight * cos(polar)
+            ).normalize()
+        }
+
+
     }
 
 }
@@ -58,3 +79,19 @@ data class CylinderEndpoints(
     val yStart: Double, val yStop: Double,
     val radius: Double
 )
+
+data class Circle(val xPoint: Double, val yPoint: Double, val radius: Double)
+
+
+private class RenderCylinder(private val cylinder: Cylinder) {
+
+    fun getCircle(timeStep: Double): Circle {
+        val zFactor = 1.0 / cylinder.w0Vector.z
+
+        return Circle(
+            timeStep * zFactor * cylinder.w0Vector.x + cylinder.c0Vector.x,
+            timeStep * zFactor * cylinder.w0Vector.y + cylinder.c0Vector.y, cylinder.r0
+        )
+    }
+
+}
